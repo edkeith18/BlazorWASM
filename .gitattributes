@@ -13,6 +13,15 @@
 #*.cs     diff=csharp
 
 ###############################################################################
+#
+# This webpage says I need to add this before first deployment to GitHub Pages
+# https://learn.microsoft.com/en-us/aspnet/core/blazor/host-and-deploy/webassembly/github-pages?view=aspnetcore-10.0
+#
+###############################################################################
+*.js   binary
+
+
+###############################################################################
 # Set the merge driver for project and solution files
 #
 # Merging from the command prompt will add diff markers to the files if there
