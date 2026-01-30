@@ -1,0 +1,59 @@
+﻿@page "/portfolio"
+
+<PageTitle>Portfolio</PageTitle>
+
+<h1>Portfolio</h1>
+
+<button class="btn btn-primary" @onclick="Debug">Break into debugger</button>
+
+<button class="btn btn-primary" @onclick="Save">Save file</button>
+
+<InputFile OnChange="LoadFile" />
+
+
+@code {
+
+    private byte[] uploadedBytes = Array.Empty<byte>();
+
+    // Read data
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000); // 10 MB
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+
+        uploadedBytes = ms.ToArray();
+        string? uploadedText = System.Text.Encoding.UTF8.GetString(uploadedBytes);
+
+    }
+
+    // Save data
+    private async Task Save()
+    {
+
+        await SaveFileAsync("output.txt", uploadedBytes);
+
+    }
+
+    @inject IJSRuntime JS
+
+    private async Task SaveFileAsync(string filename, byte[] data)
+    {
+        var base64 = Convert.ToBase64String(data);
+        var url = $"data:application/octet-stream;base64,{base64}";
+
+        await JS.InvokeVoidAsync("eval", $@"
+        var a = document.createElement('a');
+        a.href = '{url}';
+        a.download = '{filename}';
+        a.click();
+    ");
+    }
+
+    private void Debug()
+    {
+        var foo = "bar";
+    }
+}
