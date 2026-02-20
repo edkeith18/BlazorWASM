@@ -4,30 +4,34 @@
 
 <h1>Portfolio</h1>
 
-<button class="btn btn-primary" @onclick="Debug">Break into debugger</button>
+<InputFile OnChange="LoadFile" MaxFileSize="5000000"/>
 
 <button class="btn btn-primary" @onclick="Save">Save file</button>
 
-<InputFile OnChange="LoadFile" />
-
+<!-- Make accounts accessible to this page -->
+@inject PortfolioData portfolioData
+@using System.Text.Json;
 
 @code {
-
-
-    // CALL THE DATA FILE A 'PROFILE', AND PUT THE LOAD/SAVE CODE INTO ITS OWN FILE
-    private byte[] uploadedBytes = Array.Empty<byte>();
 
     // Read data
     private async Task LoadFile(InputFileChangeEventArgs e)
     {
         var file = e.File;
 
-        using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000); // 10 MB
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
+        using var stream = file.OpenReadStream(maxAllowedSize: 5_000_000);  // 5 MB
+        using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 
-        uploadedBytes = ms.ToArray();
-        string? uploadedText = System.Text.Encoding.UTF8.GetString(uploadedBytes);
+        string json = await reader.ReadToEndAsync();
+
+        var data = JsonSerializer.Deserialize<PortfolioData>(json);
+
+        foreach (Account account in data.Accounts)
+        {
+            portfolioData.AddAccount(account.Name, account.Balance);
+        }
+
+        portfolioData.Year = data.Year;
 
     }
 
@@ -35,7 +39,7 @@
     private async Task Save()
     {
 
-        await SaveFileAsync("output.txt", uploadedBytes);
+        //await SaveFileAsync("output.txt", uploadedBytes);
 
     }
 
@@ -52,10 +56,5 @@
         a.download = '{filename}';
         a.click();
     ");
-    }
-
-    private void Debug()
-    {
-        var foo = "bar";
     }
 }
